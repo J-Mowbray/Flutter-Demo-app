@@ -12,6 +12,10 @@ import '../widgets/location_list_item.dart';
 import 'search_screen.dart';
 import 'forecast_screen.dart';
 
+/// Main screen of the weather application.
+///
+/// Displays the weather for the currently selected location at the top, followed by
+/// an hourly or daily forecast timeline and a list of saved locations below.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -23,7 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialise weather data
+
+    /// Schedule initialisation after the first frame to ensure context is available.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<WeatherProvider>(context, listen: false).initialize();
     });
@@ -31,13 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(context), // Extracted AppBar
-      body: _buildBody(context), // Extracted Body
-    );
+    return Scaffold(appBar: _buildAppBar(context), body: _buildBody(context));
   }
 
-  // Extracted AppBar Widget
+  /// Constructs the application bar with title and action buttons.
+  ///
+  /// Includes refresh and add location buttons for quick access to common actions.
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       title: const Text('Weather App'),
@@ -61,41 +65,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Extracted Body Widget
+  /// Builds the main body of the home screen using Consumer for reactive updates.
+  ///
+  /// Responds to changes in the WeatherProvider state, displaying appropriate
+  /// content based on loading status, errors, and data availability.
   Widget _buildBody(BuildContext context) {
     return Consumer<WeatherProvider>(
       builder: (context, weatherProvider, child) {
+        /// Show loading indicator when initialising and no location is selected.
         if (weatherProvider.isLoading &&
             weatherProvider.selectedLocation == null) {
           return const Center(child: CircularProgressIndicator());
         }
 
+        /// Show error view when there's an error and no location is selected.
         if (weatherProvider.error != null &&
             weatherProvider.selectedLocation == null) {
-          return _buildErrorView(
-            context,
-            weatherProvider,
-          ); // Extracted Error View
+          return _buildErrorView(context, weatherProvider);
         }
 
         final selectedLocation = weatherProvider.selectedLocation;
         final weatherData = weatherProvider.selectedLocationWeatherData;
 
+        /// Show message when no location is selected or weather data is unavailable.
         if (selectedLocation == null || weatherData == null) {
           return const Center(child: Text('No location selected'));
         }
 
+        /// Show main weather view when all data is available.
         return _buildWeatherView(
           context,
           weatherProvider,
           selectedLocation,
           weatherData,
-        ); // Extracted Weather View
+        );
       },
     );
   }
 
-  // Extracted Error View Widget
+  /// Constructs an error display with details and retry button.
+  ///
+  /// Provides clear visual feedback about the error and offers
+  /// a way to retry the operation that failed.
   Widget _buildErrorView(
     BuildContext context,
     WeatherProvider weatherProvider,
@@ -124,7 +135,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Extracted Weather View Widget
+  /// Builds the main weather display when data is successfully loaded.
+  ///
+  /// Includes a pull-to-refresh mechanism, current weather card, forecast
+  /// timeline, and a list of saved locations below.
   Widget _buildWeatherView(
     BuildContext context,
     WeatherProvider weatherProvider,
@@ -137,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: ListView(
         children: [
+          /// Current weather display for the selected location.
           CurrentWeatherCard(
             weather: weatherData.current,
             locationName: selectedLocation.name,
@@ -145,10 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 print(
                   'HomeScreen: Tapped on location - ${selectedLocation.name}',
                 );
-              } // Print here
-              weatherProvider.selectLocation(
-                selectedLocation,
-              ); // Ensure location is selected
+              }
+              weatherProvider.selectLocation(selectedLocation);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ForecastScreen()),
@@ -156,6 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           const SizedBox(height: 16),
+
+          /// Forecast timeline showing hourly or daily predictions.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ForecastTimeline(
@@ -168,17 +183,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
+
+          /// List of saved locations for quick access.
           _buildSavedLocationsList(context, weatherProvider),
         ],
       ),
     );
   }
 
-  // Existing _buildSavedLocationsList (No significant changes needed)
+  /// Builds the saved locations list section.
+  ///
+  /// Combines current location (if available) with user-saved locations
+  /// and displays them in a scrollable list with appropriate controls.
   Widget _buildSavedLocationsList(
     BuildContext context,
     WeatherProvider weatherProvider,
   ) {
+    /// Combine current location and saved locations into a single list.
     final locations = [
       if (weatherProvider.currentLocation != null)
         weatherProvider.currentLocation!,
@@ -195,6 +216,8 @@ class _HomeScreenState extends State<HomeScreen> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
+
+        /// Show message when no locations are available.
         if (locations.isEmpty)
           Padding(
             padding: const EdgeInsets.all(16),
@@ -206,6 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           )
         else
+          /// Build list of location items with their current weather.
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -227,6 +251,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTap: () {
                   weatherProvider.selectLocation(location);
                 },
+
+                /// Allow deletion for saved locations but not current location.
                 onDelete:
                     !location.isCurrent
                         ? () => _confirmDeleteLocation(
@@ -239,6 +265,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         const SizedBox(height: 16),
+
+        /// Show 'Add Location' button if there are fewer than 5 locations.
         if (locations.length < 5)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -255,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Navigation Method (No changes needed)
+  /// Navigates to the search screen to add new locations.
   void _navigateToSearchScreen(BuildContext context) async {
     await Navigator.push(
       context,
@@ -263,47 +291,50 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Confirmation Dialog (No significant changes needed)
+  /// Displays a confirmation dialog before removing a saved location.
+  ///
+  /// Ensures the user has an opportunity to cancel an accidental deletion
+  /// before the location is permanently removed from their saved list.
   void _confirmDeleteLocation(
-      BuildContext context,
-      WeatherProvider weatherProvider,
-      Location location,
-      ) {
+    BuildContext context,
+    WeatherProvider weatherProvider,
+    Location location,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Location',
-            textAlign: TextAlign.center),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Do you want to remove:'),
-            const SizedBox(height: 8),
-            Text(
-              location.name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Remove Location', textAlign: TextAlign.center),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Do you want to remove:'),
+                const SizedBox(height: 8),
+                Text(
+                  location.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('from your saved locations?'),
+              ],
             ),
-            const SizedBox(height: 8),
-            const Text('from your saved locations?'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  weatherProvider.removeLocation(location);
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Remove'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              weatherProvider.removeLocation(location);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
     );
   }
 }

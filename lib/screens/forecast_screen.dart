@@ -4,6 +4,10 @@ import '../models/weather_provider.dart';
 import '../models/weather_data.dart';
 import '../widgets/weather_icon.dart';
 
+/// Detailed forecast screen showing hourly and daily weather predictions.
+///
+/// Provides a comprehensive view of upcoming weather conditions with
+/// the ability to toggle between hourly and daily forecast views.
 class ForecastScreen extends StatelessWidget {
   const ForecastScreen({super.key});
 
@@ -16,6 +20,7 @@ class ForecastScreen extends StatelessWidget {
           final selectedLocation = weatherProvider.selectedLocation;
           final weatherData = weatherProvider.selectedLocationWeatherData;
 
+          /// Display a message when weather data is unavailable.
           if (selectedLocation == null || weatherData == null) {
             return const Center(child: Text('No weather data available'));
           }
@@ -23,6 +28,7 @@ class ForecastScreen extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /// Header with location name, date, current temperature and weather icon.
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -31,16 +37,14 @@ class ForecastScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        /// Split location name by commas and display each part on a new line.
                         ...selectedLocation.name
                             .split(', ')
                             .map(
                               (part) => Text(
-                                part.trim(), // Trim any leading/trailing whitespace
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineSmall?.copyWith(
-                                  fontSize: 20, // Adjust size as needed
-                                ),
+                                part.trim(),
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(fontSize: 20),
                                 softWrap: true,
                               ),
                             ),
@@ -74,6 +78,8 @@ class ForecastScreen extends StatelessWidget {
                 ),
               ),
               const Divider(height: 1),
+
+              /// Toggle buttons for switching between hourly and daily forecasts.
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -139,6 +145,8 @@ class ForecastScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
+              /// Display either hourly or daily forecast based on selected type.
               Expanded(
                 child:
                     weatherProvider.forecastType == ForecastType.hourly
@@ -158,6 +166,9 @@ class ForecastScreen extends StatelessWidget {
     );
   }
 
+  /// Builds a scrollable list of hourly forecasts.
+  ///
+  /// Creates a ListView of hourly weather predictions for the next 24 hours.
   Widget _buildHourlyForecast(
     BuildContext context,
     List<HourlyForecast> forecasts,
@@ -171,6 +182,10 @@ class ForecastScreen extends StatelessWidget {
     );
   }
 
+  /// Creates a card for a single hourly forecast entry.
+  ///
+  /// Displays time, day, temperature, wind speed, cloud cover,
+  /// rain probability and a weather icon for the hour.
   Widget _buildHourlyForecastItem(
     BuildContext context,
     HourlyForecast forecast,
@@ -183,6 +198,7 @@ class ForecastScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
+            /// Time and day column.
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -196,6 +212,8 @@ class ForecastScreen extends StatelessWidget {
               ],
             ),
             const Spacer(),
+
+            /// Weather metrics with icons.
             Row(
               children: [
                 _buildInfoColumn(
@@ -228,6 +246,8 @@ class ForecastScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(width: 16),
+
+            /// Weather condition icon.
             WeatherIcon(
               cloudCover: forecast.cloudCover,
               rainProbability: forecast.rainProbability,
@@ -240,6 +260,9 @@ class ForecastScreen extends StatelessWidget {
     );
   }
 
+  /// Builds a scrollable list of daily forecasts.
+  ///
+  /// Creates a ListView of daily weather predictions for the next 7 days.
   Widget _buildDailyForecast(
     BuildContext context,
     List<DailyForecast> forecasts,
@@ -253,6 +276,10 @@ class ForecastScreen extends StatelessWidget {
     );
   }
 
+  /// Creates a card for a single daily forecast entry.
+  ///
+  /// Displays the day, date, temperature range, and meteorological data
+  /// including wind, cloud cover, precipitation, and UV index.
   Widget _buildDailyForecastItem(BuildContext context, DailyForecast forecast) {
     final theme = Theme.of(context);
 
@@ -264,6 +291,7 @@ class ForecastScreen extends StatelessWidget {
           children: [
             Row(
               children: [
+                /// Day and date column.
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -280,6 +308,8 @@ class ForecastScreen extends StatelessWidget {
                   ],
                 ),
                 const Spacer(),
+
+                /// Weather icon based on conditions.
                 WeatherIcon(
                   cloudCover: forecast.cloudCover,
                   rainProbability: forecast.rainProbability,
@@ -287,6 +317,8 @@ class ForecastScreen extends StatelessWidget {
                   size: 40,
                 ),
                 const SizedBox(width: 16),
+
+                /// Temperature range column.
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -307,6 +339,8 @@ class ForecastScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
+
+            /// Row of detailed weather metrics.
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -342,6 +376,10 @@ class ForecastScreen extends StatelessWidget {
     );
   }
 
+  /// Creates a column displaying a weather metric with an icon, value and label.
+  ///
+  /// Used for consistently formatting various weather measurements
+  /// throughout the forecast display.
   Widget _buildInfoColumn(
     BuildContext context, {
     required IconData icon,

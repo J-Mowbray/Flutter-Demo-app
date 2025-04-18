@@ -6,13 +6,18 @@ import '../services/location_service.dart';
 import 'dart:async';
 import 'dart:collection';
 
+/// Defines the types of weather forecasts available in the application.
 enum ForecastType { hourly, daily }
 
+/// Manages the state of weather data across the application.
+///
+/// This provider handles location management, weather data fetching,
+/// and caching strategies to optimize network requests.
 class WeatherProvider extends ChangeNotifier {
   final WeatherService _weatherService = WeatherService();
   final LocationService _locationService = LocationService();
 
-  // Cache time control
+  /// Cache management for weather data
   final Map<String, DateTime> _lastUpdateTimes = {};
   final Duration _cacheValidDuration = const Duration(minutes: 15);
 
@@ -25,11 +30,11 @@ class WeatherProvider extends ChangeNotifier {
   String? _error;
   List<Location> _searchResults = [];
 
-  // Refresh optimization flags
+  /// Optimization to prevent concurrent API operations
   bool _refreshInProgress = false;
   final Queue<VoidCallback> _pendingOperations = Queue<VoidCallback>();
 
-  // Getters
+  /// Public getters for state access
   Location? get currentLocation => _currentLocation;
   List<Location> get savedLocations => _savedLocations;
   Map<String, WeatherData> get weatherData => _weatherData;
@@ -39,16 +44,18 @@ class WeatherProvider extends ChangeNotifier {
   String? get error => _error;
   List<Location> get searchResults => _searchResults;
 
+  /// Returns weather data for the currently selected location
   WeatherData? get selectedLocationWeatherData {
     if (_selectedLocation == null) return null;
     return _weatherData[_getLocationKey(_selectedLocation!)];
   }
 
+  /// Creates a unique identifier for a location based on coordinates
   String _getLocationKey(Location location) {
     return '${location.latitude},${location.longitude}';
   }
 
-  // Check if data is stale and needs update
+  /// Determines if cached weather data needs to be refreshed
   bool _isDataStale(String locationKey) {
     if (!_lastUpdateTimes.containsKey(locationKey)) return true;
 
@@ -57,7 +64,7 @@ class WeatherProvider extends ChangeNotifier {
     return now.difference(lastUpdate) > _cacheValidDuration;
   }
 
-  // Initialize the provider
+  /// Initializes the provider by loading current and saved locations
   Future<void> initialize() async {
     if (_refreshInProgress) {
       _pendingOperations.add(() => initialize());
@@ -71,7 +78,7 @@ class WeatherProvider extends ChangeNotifier {
     _setLoading(true);
 
     try {
-      // Get current location and saved locations in parallel
+      /// Fetch current and saved locations concurrently
       final results = await Future.wait([
         _locationService.getCurrentLocation(),
         _locationService.getSavedLocations(),
@@ -84,21 +91,21 @@ class WeatherProvider extends ChangeNotifier {
         print('WeatherProvider: Current location: ${_currentLocation?.name}');
       }
 
-      // Set selected location to current location
+      /// Default to current location when app starts
       _selectedLocation = _currentLocation;
 
-      // Create a list of all locations to fetch weather for
+      /// Consolidate all locations for weather fetching
       final locationsToFetch = [
         if (_currentLocation != null) _currentLocation!,
         ..._savedLocations,
       ];
 
-      // Fetch weather data for the selected location first
+      /// Prioritize fetching data for the selected location
       if (_selectedLocation != null) {
         await fetchWeatherData(_selectedLocation!);
       }
 
-      // Pre-fetch other locations in background
+      /// Fetch remaining locations in background
       final otherLocations =
           locationsToFetch
               .where(
@@ -123,12 +130,12 @@ class WeatherProvider extends ChangeNotifier {
       _refreshInProgress = false;
       notifyListeners();
 
-      // Process any pending operations
+      /// Handle any operations queued during execution
       _processPendingOperations();
     }
   }
 
-  // Process any pending operations in the queue
+  /// Executes operations that were queued during an ongoing operation
   void _processPendingOperations() {
     if (_pendingOperations.isNotEmpty) {
       final operation = _pendingOperations.removeFirst();
@@ -136,12 +143,13 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
-  // Fetch weather data for a location
+  /// Fetches weather data for a specific location
+  /// Notifies listeners if this is the selected location
   Future<void> fetchWeatherData(Location location) async {
     final locationKey = _getLocationKey(location);
 
     try {
-      // Skip fetch if data is recent enough
+      /// Use cached data if it's still valid
       if (_weatherData.containsKey(locationKey) && !_isDataStale(locationKey)) {
         if (kDebugMode) {
           print('Using cached data for ${location.name}');
@@ -158,7 +166,7 @@ class WeatherProvider extends ChangeNotifier {
       _weatherData[locationKey] = data;
       _lastUpdateTimes[locationKey] = DateTime.now();
 
-      // If this is the selected location, notify listeners immediately
+      /// Only notify if this affects currently visible data
       if (_selectedLocation != null &&
           _getLocationKey(_selectedLocation!) == locationKey) {
         notifyListeners();
@@ -170,11 +178,11 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
-  // Helper to fetch weather for multiple locations concurrently
+  /// Fetches weather data for multiple locations concurrently
   Future<void> _fetchWeatherForMultipleLocations(
     List<Location> locations,
   ) async {
-    // Filter to only locations that need updates
+    /// Filter to locations that need updates
     final locationsToUpdate =
         locations.where((loc) {
           final key = _getLocationKey(loc);
@@ -183,24 +191,25 @@ class WeatherProvider extends ChangeNotifier {
 
     if (locationsToUpdate.isEmpty) return;
 
-    // Create a list of futures for concurrent execution
+    /// Create futures for parallel execution
     final futures = locationsToUpdate.map(
       (location) => _fetchWeatherDataSilently(location),
     );
 
-    // Wait for all fetches to complete
+    /// Execute all fetches concurrently
     await Future.wait(futures);
 
-    // Notify listeners once at the end for all updates
+    /// Update UI once all fetches complete
     notifyListeners();
   }
 
-  // Silent version that doesn't notify listeners (for batch operations)
+  /// Fetches weather data without triggering UI updates
+  /// Used for batch operations to avoid multiple rebuilds
   Future<void> _fetchWeatherDataSilently(Location location) async {
     final locationKey = _getLocationKey(location);
 
     try {
-      // Skip fetch if data is recent enough
+      /// Skip if data is already fresh
       if (_weatherData.containsKey(locationKey) && !_isDataStale(locationKey)) {
         return;
       }
@@ -215,7 +224,7 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
-  // Add a new location
+  /// Adds a new location to saved locations
   Future<void> addLocation(Location location) async {
     try {
       await _locationService.addLocation(location);
@@ -228,7 +237,7 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
-  // Remove a location
+  /// Removes a location from saved locations
   Future<void> removeLocation(Location location) async {
     try {
       await _locationService.removeLocation(location);
@@ -237,7 +246,7 @@ class WeatherProvider extends ChangeNotifier {
       _weatherData.remove(_getLocationKey(location));
       _lastUpdateTimes.remove(_getLocationKey(location));
 
-      // If the removed location was selected, switch to current location
+      /// Switch to current location if the removed location was selected
       if (_selectedLocation?.latitude == location.latitude &&
           _selectedLocation?.longitude == location.longitude) {
         _selectedLocation = _currentLocation;
@@ -250,11 +259,11 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
-  // Select a location
+  /// Sets the active location for displaying weather data
   void selectLocation(Location location) {
     _selectedLocation = location;
 
-    // Pre-fetch data if needed
+    /// Fetch fresh data if needed
     final locationKey = _getLocationKey(location);
     if (_isDataStale(locationKey)) {
       fetchWeatherData(location);
@@ -263,7 +272,7 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
-  // Toggle forecast type
+  /// Switches between hourly and daily forecast views
   void toggleForecastType() {
     _forecastType =
         _forecastType == ForecastType.daily
@@ -272,7 +281,7 @@ class WeatherProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Refresh weather data for all locations
+  /// Refreshes weather data for all locations
   Future<void> refreshAllWeatherData() async {
     if (_refreshInProgress) {
       _pendingOperations.add(() => refreshAllWeatherData());
@@ -288,7 +297,7 @@ class WeatherProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // First, get a fresh current location
+      /// First check if device location has changed
       try {
         final freshLocation = await _locationService.getCurrentLocation();
         final currentLocationChanged =
@@ -301,13 +310,13 @@ class WeatherProvider extends ChangeNotifier {
             print('Current location changed: ${freshLocation.name}');
           }
 
-          // Update current location
+          /// Update current location reference
           _currentLocation = freshLocation;
 
-          // Force refresh by removing cache entry
+          /// Invalidate cache for this location
           _lastUpdateTimes.remove(_getLocationKey(freshLocation));
 
-          // If current location is selected, update it too
+          /// Update selected location if it was current location
           if (_selectedLocation?.isCurrent == true) {
             _selectedLocation = freshLocation;
           }
@@ -318,10 +327,10 @@ class WeatherProvider extends ChangeNotifier {
         }
       }
 
-      // Refresh saved locations list
+      /// Get updated saved locations list
       _savedLocations = await _locationService.getSavedLocations();
 
-      // Create a list of all locations to refresh
+      /// Consolidate all locations to refresh
       final locationsToRefresh = [
         if (_currentLocation != null) _currentLocation!,
         ..._savedLocations.where(
@@ -331,14 +340,14 @@ class WeatherProvider extends ChangeNotifier {
         ),
       ];
 
-      // Refresh the selected location first for better UX
+      /// Prioritize refreshing the selected location
       if (_selectedLocation != null) {
-        // Force refresh by marking as stale
+        /// Invalidate cache to force refresh
         _lastUpdateTimes.remove(_getLocationKey(_selectedLocation!));
         await fetchWeatherData(_selectedLocation!);
       }
 
-      // Then refresh other locations in parallel
+      /// Refresh remaining locations in parallel
       final otherLocations =
           locationsToRefresh
               .where(
@@ -349,7 +358,7 @@ class WeatherProvider extends ChangeNotifier {
               .toList();
 
       if (otherLocations.isNotEmpty) {
-        // Force refresh by marking all as stale
+        /// Invalidate cache for all locations
         for (var location in otherLocations) {
           _lastUpdateTimes.remove(_getLocationKey(location));
         }
@@ -367,12 +376,12 @@ class WeatherProvider extends ChangeNotifier {
       _refreshInProgress = false;
       notifyListeners();
 
-      // Process any pending operations
+      /// Process queued operations
       _processPendingOperations();
     }
   }
 
-  // Refresh weather data for selected location
+  /// Refreshes weather data only for the currently selected location
   Future<void> refreshSelectedLocationWeatherData() async {
     if (_selectedLocation == null) return;
 
@@ -392,7 +401,7 @@ class WeatherProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Always try to get a fresh current location first
+      /// Check for device location changes
       try {
         final freshLocation = await _locationService.getCurrentLocation();
         final currentLocationChanged =
@@ -405,26 +414,26 @@ class WeatherProvider extends ChangeNotifier {
             print('Current location changed: ${freshLocation.name}');
           }
 
-          // Update current location
+          /// Update current location reference
           _currentLocation = freshLocation;
 
-          // Force refresh by removing cache entry
+          /// Invalidate cache
           _lastUpdateTimes.remove(_getLocationKey(freshLocation));
 
-          // If the selected location is the current location, update it
+          /// Handle if selected location is current location
           if (_selectedLocation!.isCurrent) {
             _selectedLocation = freshLocation;
             await fetchWeatherData(freshLocation);
           } else {
-            // Update current location in background
+            /// Update current location in background
             fetchWeatherData(freshLocation);
 
-            // Force refresh selected location
+            /// Force refresh of selected location
             _lastUpdateTimes.remove(_getLocationKey(_selectedLocation!));
             await fetchWeatherData(_selectedLocation!);
           }
         } else {
-          // Location hasn't changed, just refresh selected
+          /// Location hasn't changed, just refresh selected location
           _lastUpdateTimes.remove(_getLocationKey(_selectedLocation!));
           await fetchWeatherData(_selectedLocation!);
         }
@@ -432,7 +441,8 @@ class WeatherProvider extends ChangeNotifier {
         if (kDebugMode) {
           print('Error refreshing current location: $e');
         }
-        // If getting fresh location fails, just refresh selected
+
+        /// Fall back to just refreshing selected location
         _lastUpdateTimes.remove(_getLocationKey(_selectedLocation!));
         await fetchWeatherData(_selectedLocation!);
       }
@@ -448,12 +458,12 @@ class WeatherProvider extends ChangeNotifier {
       _refreshInProgress = false;
       notifyListeners();
 
-      // Process any pending operations
+      /// Process queued operations
       _processPendingOperations();
     }
   }
 
-  // Search for locations
+  /// Performs location search based on user query
   Future<void> searchLocations(String query) async {
     if (_refreshInProgress) {
       _pendingOperations.add(() => searchLocations(query));
@@ -474,17 +484,18 @@ class WeatherProvider extends ChangeNotifier {
       _refreshInProgress = false;
       notifyListeners();
 
-      // Process any pending operations
+      /// Process queued operations
       _processPendingOperations();
     }
   }
 
+  /// Clears the location search results
   void clearSearchResults() {
     _searchResults = [];
     notifyListeners();
   }
 
-  // Helper method to set loading state
+  /// Updates the loading state
   void _setLoading(bool loading) {
     _isLoading = loading;
   }
