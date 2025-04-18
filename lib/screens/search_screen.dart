@@ -195,24 +195,35 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: Theme.of(context).colorScheme.primary,
               )
               : IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () async {
-                  await weatherProvider.addLocation(
-                    location,
-                  ); // Add via WeatherProvider
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${location.name} added to your locations',
-                        ),
-                        duration: const Duration(seconds: 2),
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              await weatherProvider.addLocation(location);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // Use min size instead of fixed height
+                        children: [
+                          const Text('Added to your locations:'),
+                          const SizedBox(height: 4),
+                          Text(
+                            location.name,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
-                    );
-                  }
-                },
-                tooltip: 'Add to saved locations',
-              ),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+
+              }
+            },
+            tooltip: 'Add to saved locations',
+          ),
+
       onTap: () async {
         if (!isAlreadySaved) {
           await weatherProvider.addLocation(

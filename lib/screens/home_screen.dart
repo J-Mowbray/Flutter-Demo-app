@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -263,34 +265,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Confirmation Dialog (No significant changes needed)
   void _confirmDeleteLocation(
-    BuildContext context,
-    WeatherProvider weatherProvider,
-    Location location,
-  ) {
+      BuildContext context,
+      WeatherProvider weatherProvider,
+      Location location,
+      ) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Remove Location'),
-            content: Text(
-              'Do you want to remove ${location.name} from your saved locations?',
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Location',
+            textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Do you want to remove:'),
+            const SizedBox(height: 8),
+            Text(
+              location.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  weatherProvider.removeLocation(location);
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Remove'),
-              ),
-            ],
+            const SizedBox(height: 8),
+            const Text('from your saved locations?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () {
+              weatherProvider.removeLocation(location);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
     );
   }
 }

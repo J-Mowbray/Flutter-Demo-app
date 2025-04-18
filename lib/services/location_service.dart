@@ -10,6 +10,11 @@ class LocationService {
   static const String geocodingBaseUrl =
       'https://geocoding-api.open-meteo.com/v1';
 
+  // Helper method to build consistent location name format
+  String _formatLocationName(List<String> parts) {
+    return parts.where((part) => part.isNotEmpty).join(',\n');
+  }
+
   // Get current device location
   Future<app_location.Location> getCurrentLocation() async {
     // Check location permissions
@@ -61,9 +66,9 @@ class LocationService {
 
   // Get location name using Open-Meteo API
   Future<String> _getLocationNameFromOpenMeteo(
-    double latitude,
-    double longitude,
-  ) async {
+      double latitude,
+      double longitude,
+      ) async {
     try {
       final url = Uri.parse(
         '$geocodingBaseUrl/reverse?latitude=$latitude&longitude=$longitude&language=en',
@@ -83,14 +88,12 @@ class LocationService {
 
           // Extract the location components
           final String name = result['name'] ?? '';
-          final String region =
-              result['admin1'] ?? ''; // admin1 is usually region/state/province
+          final String region = result['admin1'] ?? '';
           final String country = result['country'] ?? '';
 
           // Build the location string with all available components
           if (name.isNotEmpty) {
-            List<String> parts = [];
-            parts.add(name);
+            List<String> parts = [name];
 
             if (region.isNotEmpty) {
               parts.add(region);
@@ -100,7 +103,7 @@ class LocationService {
               parts.add(country);
             }
 
-            return parts.join(',\n');
+            return _formatLocationName(parts);
           }
         }
       }
@@ -115,9 +118,9 @@ class LocationService {
 
   // Get location name using platform-specific geocoding
   Future<String> _getLocationNameFromPlatform(
-    double latitude,
-    double longitude,
-  ) async {
+      double latitude,
+      double longitude,
+      ) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         latitude,
@@ -166,7 +169,7 @@ class LocationService {
 
         // Format the location string with all components
         if (locationParts.isNotEmpty) {
-          return locationParts.join(',\n');
+          return _formatLocationName(locationParts);
         }
       }
     } catch (e) {
@@ -246,15 +249,33 @@ class LocationService {
         if (data['results'] != null) {
           return (data['results'] as List)
               .map(
-                (item) => app_location.Location(
-                  name:
-                      item['name'] +
-                      (item['admin1'] != null ? ', ${item['admin1']}' : '') +
-                      (item['country'] != null ? ', ${item['country']}' : ''),
-                  latitude: item['latitude'],
-                  longitude: item['longitude'],
-                ),
-              )
+                (item) {
+              // Extract the location components
+              final String name = item['name'] ?? '';
+              final String region = item['admin1'] ?? '';
+              final String country = item['country'] ?? '';
+
+              // Build the location string with all available components
+              List<String> parts = [];
+              if (name.isNotEmpty) {
+                parts.add(name);
+              }
+
+              if (region.isNotEmpty) {
+                parts.add(region);
+              }
+
+              if (country.isNotEmpty) {
+                parts.add(country);
+              }
+
+              return app_location.Location(
+                name: _formatLocationName(parts),
+                latitude: item['latitude'],
+                longitude: item['longitude'],
+              );
+            },
+          )
               .toList();
         } else {
           return [];
