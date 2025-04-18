@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
+/// Centralised theme configuration for the weather application.
+///
+/// Provides consistent theming across the application with predefined
+/// light and dark themes. Both themes share similar structural properties
+/// but with appropriate brightness and colour adjustments.
 class AppTheme {
-  // Light theme
+  /// Light theme configuration for daytime and bright environment usage.
+  ///
+  /// Features a blue-based colour scheme with light backgrounds and
+  /// appropriately contrasting text for optimal readability in well-lit conditions.
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -31,7 +39,11 @@ class AppTheme {
     ),
   );
 
-  // Dark theme
+  /// Dark theme configuration for nighttime and low-light environment usage.
+  ///
+  /// Utilises darker backgrounds with appropriate text contrast to reduce
+  /// eye strain in dimly lit conditions while maintaining the application's
+  /// visual identity and usability.
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,

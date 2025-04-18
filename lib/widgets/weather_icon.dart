@@ -20,19 +20,19 @@ class WeatherIcon extends StatelessWidget {
     Color color;
 
     if (rainProbability > 50) {
-      // Rainy weather
+      /// Rainy weather
       icon = Icons.thunderstorm;
       color = Colors.blueGrey;
     } else if (cloudCover > 70) {
-      // Cloudy weather
+      /// Cloudy weather
       icon = Icons.cloud;
       color = Colors.grey;
     } else if (cloudCover > 30) {
-      // Partly cloudy
+      /// Partly cloudy
       icon = isDay ? Icons.wb_cloudy : Icons.nights_stay;
       color = isDay ? Colors.orange : Colors.indigo;
     } else {
-      // Clear sky
+      /// Clear sky
       icon = isDay ? Icons.wb_sunny : Icons.nights_stay;
       color = isDay ? Colors.orange : Colors.indigo;
     }

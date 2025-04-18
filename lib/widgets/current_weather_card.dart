@@ -2,11 +2,23 @@ import 'package:flutter/material.dart';
 import '../models/weather_data.dart';
 import 'weather_icon.dart';
 
+/// A widget that displays detailed current weather information in a card format.
+///
+/// Presents comprehensive meteorological data including temperature, rainfall,
+/// wind speed, UV index, pollen count, and air quality in a visually appealing layout.
 class CurrentWeatherCard extends StatelessWidget {
+  /// Current weather data to display.
   final CurrentWeather weather;
+
+  /// Name of the location for which weather data is shown.
   final String locationName;
+
+  /// Callback function executed when the card is tapped.
   final VoidCallback onTap;
 
+  /// Creates a new CurrentWeatherCard widget.
+  ///
+  /// All parameters are required to properly display the weather information.
   const CurrentWeatherCard({
     super.key,
     required this.weather,
@@ -28,6 +40,7 @@ class CurrentWeatherCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /// Header row with location name, date, time and weather icon
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -52,15 +65,17 @@ class CurrentWeatherCard extends StatelessWidget {
                   ),
                   WeatherIcon(
                     cloudCover: weather.cloudCover,
-                    rainProbability:
-                        weather.rainfall *
-                        10, // Converting to probability-like value
+                    rainProbability: weather.rainfall * 10,
+
+                    /// Converting rainfall to probability-like value
                     isDay: weather.isDay,
                     size: 50,
                   ),
                 ],
               ),
               const SizedBox(height: 20),
+
+              /// Main temperature display with rainfall and wind information
               Row(
                 children: [
                   Text(
@@ -91,6 +106,8 @@ class CurrentWeatherCard extends StatelessWidget {
                 ],
               ),
               const Divider(height: 32),
+
+              /// Additional weather metrics displayed in a row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -127,6 +144,9 @@ class CurrentWeatherCard extends StatelessWidget {
     );
   }
 
+  /// Builds a labelled information row with an icon.
+  ///
+  /// Used for displaying weather metrics like rainfall and wind speed.
   Widget _buildInfoRow(
     BuildContext context, {
     required IconData icon,
@@ -144,6 +164,10 @@ class CurrentWeatherCard extends StatelessWidget {
     );
   }
 
+  /// Builds a vertically arranged detail item with icon, value and label.
+  ///
+  /// Used for displaying additional metrics such as UV index, pollen count,
+  /// air quality, and day/night status.
   Widget _buildDetailItem(
     BuildContext context, {
     required IconData icon,

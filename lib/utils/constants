@@ -1,24 +1,54 @@
+/// Application-wide constants used throughout the weather app.
+///
+/// This class centralises all fixed values used across the application
+/// to ensure consistency and facilitate maintenance. The constants are
+/// organised by category for easy reference and management.
 class AppConstants {
-  // API related
+  /// API configuration constants.
+  ///
+  /// Base URL for the Open-Meteo weather API service used for
+  /// fetching meteorological data.
   static const String openMeteoBaseUrl = 'https://api.open-meteo.com/v1';
-  
-  // Storage keys
+
+  /// Local storage key constants.
+  ///
+  /// Key used for storing and retrieving user-saved locations
+  /// in the device's persistent storage.
   static const String savedLocationsKey = 'savedLocations';
-  
-  // UI related
+
+  /// UI dimension constants.
+  ///
+  /// Standard radius value for card corners throughout the application
+  /// to maintain visual consistency.
   static const double cardBorderRadius = 16.0;
+
+  /// Default padding value applied to UI elements for consistent spacing.
   static const double defaultPadding = 16.0;
-  
-  // Weather related
+
+  /// Weather forecasting constants.
+  ///
+  /// Number of days to include in the daily weather forecast display.
   static const int dailyForecastDays = 7;
+
+  /// Number of hours to include in the hourly weather forecast display.
   static const int hourlyForecastHours = 24;
-  
-  // Temperature scales
+
+  /// Temperature unit display constants.
+  ///
+  /// Symbol representation for Celsius temperature scale.
   static const String celsius = '°C';
+
+  /// Symbol representation for Fahrenheit temperature scale.
   static const String fahrenheit = '°F';
-  
-  // Weather condition thresholds
+
+  /// Weather classification threshold constants.
+  ///
+  /// Cloud cover percentage threshold above which weather is considered 'cloudy'.
   static const int cloudyCoverThreshold = 70;
+
+  /// Cloud cover percentage threshold above which weather is considered 'partly cloudy'.
   static const int partlyCloudyCoverThreshold = 30;
+
+  /// Rain probability percentage threshold above which weather is considered 'rainy'.
   static const double rainyProbabilityThreshold = 50.0;
 }

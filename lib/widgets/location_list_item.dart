@@ -3,13 +3,30 @@ import '../models/location.dart';
 import '../models/weather_data.dart';
 import 'weather_icon.dart';
 
+/// A widget that displays a location with its current weather in a list.
+///
+/// Presents location name, current temperature, weather condition icons,
+/// and provides selection and deletion capabilities.
 class LocationListItem extends StatelessWidget {
+  /// The location to be displayed.
   final Location location;
+
+  /// Current weather data for this location, if available.
   final CurrentWeather? weather;
+
+  /// Whether this location is currently selected.
   final bool isSelected;
+
+  /// Callback executed when the user taps on this item.
   final VoidCallback onTap;
+
+  /// Optional callback executed when the user tries to delete this location.
   final VoidCallback? onDelete;
 
+  /// Creates a new LocationListItem widget.
+  ///
+  /// The [location], [isSelected], and [onTap] parameters are required.
+  /// Weather data and deletion callback are optional.
   const LocationListItem({
     super.key,
     required this.location,
@@ -36,6 +53,7 @@ class LocationListItem extends StatelessWidget {
           padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
+              /// Display current location indicator if this is the user's current location
               if (location.isCurrent)
                 Icon(
                   Icons.my_location,
@@ -47,6 +65,7 @@ class LocationListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Split location name into parts and display each on its own line
                     ...location.name
                         .split(', ')
                         .map(
@@ -62,6 +81,8 @@ class LocationListItem extends StatelessWidget {
                             softWrap: true, // Allow wrapping
                           ),
                         ),
+
+                    /// Display temperature and day/night status if weather data is available
                     if (weather != null)
                       Text(
                         '${weather!.temperature.toStringAsFixed(1)}°C | ${weather!.isDay ? 'Day' : 'Night'}',
@@ -75,6 +96,8 @@ class LocationListItem extends StatelessWidget {
                   ],
                 ),
               ),
+
+              /// Display weather condition icon if weather data is available
               if (weather != null)
                 WeatherIcon(
                   cloudCover: weather!.cloudCover,
@@ -82,6 +105,8 @@ class LocationListItem extends StatelessWidget {
                   isDay: weather!.isDay,
                   size: 30,
                 ),
+
+              /// Display delete button except for current location
               if (onDelete != null && !location.isCurrent)
                 IconButton(
                   icon: const Icon(Icons.delete_outline),

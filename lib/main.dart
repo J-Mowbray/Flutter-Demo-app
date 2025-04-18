@@ -4,10 +4,14 @@ import 'models/weather_provider.dart';
 import 'screens/home_screen.dart';
 import 'utils/theme.dart';
 
+/// Application entry point
 void main() {
   runApp(const MyApp());
 }
 
+/// Root widget of the application
+///
+/// Sets up the provider architecture and theme configuration
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
