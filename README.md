@@ -2,7 +2,7 @@
 A simple weather app that shows a 7 day forecast and the current weather using the https://open-meteo.com/ open source weather app.
 
 ## Technical Notes
-
+Built with Flutter 3.29.2
 ### Constants Usage
 
 The project includes an `AppConstants` class that centralizes important configuration values like API endpoints, UI dimensions, and weather thresholds. However, these constants are not consistently used throughout the codebase.
