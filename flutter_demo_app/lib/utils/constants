@@ -1,0 +1,24 @@
+class AppConstants {
+  // API related
+  static const String openMeteoBaseUrl = 'https://api.open-meteo.com/v1';
+  
+  // Storage keys
+  static const String savedLocationsKey = 'savedLocations';
+  
+  // UI related
+  static const double cardBorderRadius = 16.0;
+  static const double defaultPadding = 16.0;
+  
+  // Weather related
+  static const int dailyForecastDays = 7;
+  static const int hourlyForecastHours = 24;
+  
+  // Temperature scales
+  static const String celsius = '°C';
+  static const String fahrenheit = '°F';
+  
+  // Weather condition thresholds
+  static const int cloudyCoverThreshold = 70;
+  static const int partlyCloudyCoverThreshold = 30;
+  static const double rainyProbabilityThreshold = 50.0;
+}
